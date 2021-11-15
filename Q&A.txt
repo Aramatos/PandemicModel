@@ -1,4 +1,4 @@
-Questions to be addressed
+Questions to be addressed:
 
 From Nicola:
 - In Trial.ipynb:
