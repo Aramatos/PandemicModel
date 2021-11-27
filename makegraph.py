@@ -27,7 +27,7 @@ def add_ages(g,distribution):
         if counter < agedistribution[a-1]:
             #if current age group hasn't gotten enough people assigned, add another, move on to next vertex
             g.vp.age[v] = a
-            agegrouplists[a-1].append(v)
+            #agegrouplists[a-1].append(v)
             counter = counter + 1
         else:
             #current age group is full, move to next age group with at least one person
@@ -39,12 +39,12 @@ def add_ages(g,distribution):
                     #in case number for last age group is 0
                     return
             g.vp.age[v] = a
-            agegrouplists[a-1].append(v)
+            #agegrouplists[a-1].append(v)
             counter = 1
 
 # SET UP GRAPH
-def make_graph():
-    size = 100
+def make_graph(size,distribution):
+    #size = 100
     
     g = Graph(directed=False)
     
@@ -55,48 +55,24 @@ def make_graph():
     
     global R     # Grey color (will not actually be drawn)
      
-    global V        # Blue color
+    global Sv        # Blue color
+    
+    global Iv        #Dark blue color
     
     global D        #DEATH (red)
     
     #timestamp list, basically [1,2,...]
-    global tlist 
-    #TIMEUNIT defines how many time units it should take until graph plotting
-    global TIMEUNIT
-    for i in range(TIMEUNIT):
-        tlist.append(i+1)
-    
+        
     #lists to track the number of people of each state
-    global sval
-    global ival
-    global rval
-    global vval
-    global dval
-    global economy_list
-    global scount
-    global icount
-    global vcount
-    global rcount
-    global dcount
-    global ccount
     
-    global tags
-    #initialize tag as empty string
-    tag =""
     #all definitions of vertice edges
     state = g.new_vertex_property("vector<double>")
     age=g.new_vertex_property("int")
-    vac=g.new_vertex_property("bool")
     removed = g.new_vertex_property("bool")
-    newly_infected = g.new_vertex_property("bool")
     
     g.vp.state = state
     g.vp.age = age
-    g.vp.vac = vac
-    g.vp.removed = removed 
-    g.vp.newly_infected = newly_infected
-    global agegroups
-    global agegrouplists 
+    g.vp.removed = removed
 
     # insert random vertices (nodes)
     g.add_vertex(size)
@@ -105,46 +81,38 @@ def make_graph():
     for s,t in zip(randint(0, size, 2*size), randint(0, size, 2*size)):
         g.add_edge(g.vertex(s), g.vertex(t))
     
-    global scount
-    global vcount
     #makes all nodes suceptible
     for i in g.vertices():
         v = g.vertex(i) 
         
         g.vp.state[v] = S
-        scount+=1
-        vac[v]=False;
-        
-        '''if random() < vac_prob:
-        
-            vac[v]=True;
-            vcount+=1
-            scount-=1
-            state[v] = V'''
     
-    #this line is to randomlyinitialize one vertex as infected
+    #this line is to randomly initialize one vertex as infected
     state[randint(0,size)]= I
-    icount += 1
     #assign ages to vertices following given age distribution
-    add_ages(g,'Japan')
+    add_ages(g,distribution)
     return g
-    #print(graph_tool.spectral.adjacency(g,weight=None, vindex=None, operator=True)*np.identity(99))
 
 #definition of vertex properties
-S = [1, 1, 1, 1]           # White color
+S = [1, 1, 1, 1]          # SUSCEPTIBLE               (white)
 
-I = [0, 0, 0, 1]           # Black color
+I = [0, 0, 0, 1]          # INFECTED                  (black)
 
-R = [0.5, 0.5, 0.5, 1.]    # Grey color (will not actually be drawn)
+R = [0.5, 0.5, 0.5, 1.]   # RECOVERED                 (grey, will not be drawn)
 
-V = [0, 0, 1, 1]           # Blue color
+Sv = [0, 0, 1, 1]         # SUSCEPTIBLE + VACCINATED  (blue)
 
-D = [0.8, 0, 0, 0.6]       #DEATH (red)
-agegroups=20
+Iv = [0.2,0.2,0.5,1]      # INFECTED + VACCINATED     (dark blue)
+
+D = [0.8, 0, 0, 0.6]      # DEAD                      (red)
+
+'''agegroups=20
 agegrouplists = [[] for i in range(1, agegroups+1)]
 tlist = list()
 TIMEUNIT = 20
-tags = list()
+tags = list()'''
+
+
 #probabilities
 
 
@@ -172,22 +140,106 @@ vac_reclist = [0.39,0.39,0.39,0.39,0.39,0.39,0.39,0.39,0.35,0.35,0.31,0.31,0.26,
 #economy contribution
 
 economy = [0,0,0,0.025,0.025,0.05,0.1,0.1,0.1,0.2,0.1,0.1,0.1,0.05,0.025,0.025,0,0,0]
-#lists to track the number of people of each state
-sval=list()
-ival=list()
-rval=list()
-vval=list()
-dval=list()
-economy_list=list()
-scount=0
-icount=0
-vcount=0
-rcount=0
-dcount=0
-ccount=0
-g = make_graph()
 
+
+#g = make_graph()
+
+def graph_to_matrix(g):
+    matrix = np.zeros([g.num_vertices(),6])
+    for v in g.vertices():
+        if g.vp.state[v] == S: 
+            matrix[int(v),0] = 1
+        if g.vp.state[v] == I: 
+            matrix[int(v),1] = 1
+        if g.vp.state[v] == R: 
+            matrix[int(v),2] = 1
+        if g.vp.state[v] == Sv: 
+            matrix[int(v),3] = 1
+        if g.vp.state[v] == Iv: 
+            matrix[int(v),4] = 1
+        if g.vp.state[v] == D: 
+            matrix[int(v),5] = 1
+    return matrix
 
 def graph_get():
     return g
 
+def update_state(g,action):
+    
+    #newly_infected.a = False
+    
+    #g.vp.removed.a = False
+    
+    vs = list(g.vertices())
+
+    shuffle(vs)
+
+    for v in vs:
+
+        if g.vp.state[v] == I: #infected
+            
+            if random() < reclist[g.vp.age[v]-1] : #r: recovery rate
+                g.vp.state[v] = R
+                g.clear_vertex(v) #clear all connections
+                
+            elif random() < drlist[g.vp.age[v]-1]:
+                g.vp.state[v] = D       #dead
+                g.clear_vertex(v)  #clear all connections
+                
+        if g.vp.state[v] == Iv: #infected and vaccinated
+            
+            if random() < vac_reclist[g.vp.age[v]-1]:
+                g.vp.state[v] = R
+                g.clear_vertex(v)  #clear all connections
+                
+            elif random() < vac_drlist[g.vp.age[v]-1]:
+                g.vp.state[v] = D       #vac dead
+                g.clear_vertex(v)  #clear all connections
+
+        elif g.vp.state[v] == S: #susceptible
+            #economy_value += economy[age[v]-1]
+            if random() < action[g.vp.age[v]-1]*vacc_ac[g.vp.age[v]-1]:
+                #action models vaccine availability
+                g.vp.state[v] = Sv #if vaccine is available and accepted by individual, vaccinate
+            
+            else: 
+                ns = list(v.out_neighbors())
+                
+                i = 0
+
+                for w in ns: #iterate through all neighbors, each has infection probability
+
+                    if (g.vp.state[w] == I or g.vp.state[w] == Iv) and random()<inflist[g.vp.age[v]-1]:
+                    #infection rate dependent on age
+                        
+                        i = 1 
+                        
+                if i:#if infected by at least one neighbor, change status
+                    g.vp.state[v] = I
+    
+        elif g.vp.state[v] == Sv:
+            #economy_value += economy[age[v]-1]
+            ns = list(v.out_neighbors())
+
+            i = 0
+
+            for w in ns:
+                
+                if (g.vp.state[w] == I or g.vp.state[w] == Iv) and random()<vac_inflist[g.vp.age[v]-1]:
+                    
+                    i = 1
+            
+            if i:
+                g.vp.state[v] = I
+                        
+
+        #if g.vp.state[v] == R:
+            #economy_value += economy[age[v]-1]
+            #g.vp.removed[v] = True
+            
+       
+    #economy_list.append(economy_value)
+
+    # Filter out the recovered vertices
+
+    g.set_vertex_filter(g.vp.removed, inverted=True)
