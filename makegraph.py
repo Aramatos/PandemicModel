@@ -145,20 +145,26 @@ economy = [0,0,0,0.025,0.025,0.05,0.1,0.1,0.1,0.2,0.1,0.1,0.1,0.05,0.025,0.025,0
 #g = make_graph()
 
 def graph_to_matrix(g):
-    matrix = np.zeros([g.num_vertices(),6])
+    matrix = np.zeros([g.num_vertices(),7])
     for v in g.vertices():
         if g.vp.state[v] == S: 
             matrix[int(v),0] = 1
+            matrix[int(v),6] = economy[g.vp.age[v]-1]
         if g.vp.state[v] == I: 
             matrix[int(v),1] = 1
+            matrix[int(v),6] = 0
         if g.vp.state[v] == R: 
             matrix[int(v),2] = 1
+            matrix[int(v),6] = economy[g.vp.age[v]-1]
         if g.vp.state[v] == Sv: 
             matrix[int(v),3] = 1
+            matrix[int(v),6] = economy[g.vp.age[v]-1]
         if g.vp.state[v] == Iv: 
             matrix[int(v),4] = 1
+            matrix[int(v),6] = 0
         if g.vp.state[v] == D: 
             matrix[int(v),5] = 1
+            matrix[int(v),6] = 0
     return matrix
 
 def graph_get():
@@ -243,3 +249,6 @@ def update_state(g,action):
     # Filter out the recovered vertices
 
     g.set_vertex_filter(g.vp.removed, inverted=True)
+
+
+
