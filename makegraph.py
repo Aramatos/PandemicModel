@@ -117,25 +117,22 @@ tags = list()'''
 
 
 #death probability list for different age groups: https://pubmed.ncbi.nlm.nih.gov/32674819/
-drlist = [.003,.003,.003,.003,.003,.003,.005,.005,.011,.011,.03,.03,.095,.095,.228,.228,.296,.296,.296,0.296]
-#same VACCINATED
-vac_drlist = [.001,.001,.001,.001,.001,.001,.002,.002,.005,0.005,0.015,0.015,.047,.047,.114,.114,.148,.148,.148,.148]
-
+drlist = np.array([.003,.003,.003,.003,.003,.003,.005,.005,.011,.011,.03,.03,.095,.095,.228,.228,.296,.296,.296,0.296])
+#same VACCINATED https://www.nejm.org/doi/pdf/10.1056/NEJMc2113864?articleTools=true
+vac_drlist = np.array([0,0,0,0,0,0,0,0,.005*.12,.011*.12,.011*.10,.03*.10,.03*.10,.095*.10,.095*.10,.228*.10,.228*.10,.296*.10,.296*.10,.296*.10,0.296*.10])
 
 #vaccine availability by age group:
 vacc_av = [0,0,0,0,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01]
 #vaccine acceptance rate by age group:
-vacc_ac = [0,0,0,0,0.5,0.5,0.5,0.5,0.6,0.6,0.6,0.6,0.7,0.7,0.7,0.7,0.8,0.8,0.9,0.9]
+#https://www.ecdc.europa.eu/sites/default/files/documents/Interim-analysis-of-COVID-19-vaccine-effectiveness.pdf
+vacc_ac = [0,0,0.57,.57,0.57,0.57,0.57,0.57,0.57,0.57,0.517,0.517,0.613,0.613,0.774,0.774,0.834,0.834,0.834,0.834]
 
-#infection probability for different age groups
-inflist = [0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8]
-#same VACCINATED
-vac_inflist = [.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,.20,0.20]
+#infection probability for different age groups https://www.nature.com/articles/s41591-020-0962-9#Sec13
+inflist = np.array([0.4,0.38,0.38,0.79,0.79,0.86,0.86,0.8,0.8,0.82,0.82,0.88,0.88,0.74,0.74,0.74,0.74,0.74,0.74,0.74])
+#same VACCINATED https://pubmed.ncbi.nlm.nih.gov/34202324/
+vac_inflist = inflist*0.2
 
-#recovery probability for different age groups
-reclist = [0.34,0.34,0.34,0.34,0.34,0.34,0.34,0.34,0.32,0.32,0.28,0.28,0.22,0.22,0.15,0.15,0.10,0.10,0.08,0.08]
-#same VACCINATED
-vac_reclist = [0.39,0.39,0.39,0.39,0.39,0.39,0.39,0.39,0.35,0.35,0.31,0.31,0.26,0.26,0.20,0.20,0.14,0.14,0.13,0.13]
+#recovery is now only dependent on death
 
 #economy contribution
 
