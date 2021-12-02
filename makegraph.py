@@ -180,14 +180,17 @@ def update_state(g,action):
     for v in vs:
 
         if g.vp.state[v] == I: #infected
-            
+            '''
             if random() < reclist[g.vp.age[v]-1] : #r: recovery rate
                 g.vp.state[v] = R
                 g.clear_vertex(v) #clear all connections
-                
-            elif random() < drlist[g.vp.age[v]-1]:
+            '''    
+            if random() < drlist[g.vp.age[v]-1]:
                 g.vp.state[v] = D       #dead
                 g.clear_vertex(v)  #clear all connections
+                
+            else: 
+                g.vp.state[v] = R
                 
         if g.vp.state[v] == Iv: #infected and vaccinated
             
