@@ -69,11 +69,11 @@ def make_graph(size,distribution):
     state = g.new_vertex_property("vector<double>")
     age=g.new_vertex_property("int")
     removed = g.new_vertex_property("bool")
-    
+    emax = g.new_vertex_property("int")
     g.vp.state = state
     g.vp.age = age
     g.vp.removed = removed
-
+    g.vp.emax = emax
     # insert random vertices (nodes)
     g.add_vertex(size)
     
@@ -136,10 +136,21 @@ vac_inflist = inflist*0.2
 
 #economy contribution
 
-economy = [0,0,0,0.025,0.025,0.05,0.1,0.1,0.1,0.2,0.1,0.1,0.1,0.05,0.025,0.025,0,0,0]
+economy = [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0]
 
 
 #g = make_graph()
+def extract_economy(g):
+    #emax is maximal economy value calculated over all people (even dead)
+    emax = 0
+    #ecurr is current value calculated over people who are NOT dead, NOT infected and NOT infected vaccinated
+    ecurr = 0
+    for v in g.vertices():
+        emax += economy[g.vp.age[v]-1]
+        if g.vp.state[v]!= D:
+            if g.vp.state[v]!= I and g.vp.state[v]!=Iv:
+                ecurr += economy[g.vp.age[v]-1]
+    return ecurr/emax
 
 def graph_to_matrix(g):
     matrix = np.zeros([g.num_vertices(),7])
