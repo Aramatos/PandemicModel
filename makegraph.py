@@ -58,7 +58,7 @@ def make_graph(size,distribution):
         for s,t in zip(randint(0, size, 2*size), randint(0, size, 2*size)):
             g.add_edge(g.vertex(s), g.vertex(t))
     else:
-         g=graph_tool.generation.price_network(100, m=5, c=None, gamma=1, directed=False,seed_graph=None)
+         g=graph_tool.generation.price_network(size, m=5, c=None, gamma=1, directed=False,seed_graph=None)
     
     #definition of vertex properties
     global S          # White color
@@ -217,7 +217,7 @@ def update_state(g,action):
                 g.vp.state[v] = R
                 
         if g.vp.state[v] == Iv: #infected and vaccinated
-            
+            '''
             if random() < vac_reclist[g.vp.age[v]-1]:
                 g.vp.state[v] = R
                 g.clear_vertex(v)  #clear all connections
@@ -225,6 +225,13 @@ def update_state(g,action):
             elif random() < vac_drlist[g.vp.age[v]-1]:
                 g.vp.state[v] = D       #vac dead
                 g.clear_vertex(v)  #clear all connections
+            '''
+            if random() < vac_drlist[g.vp.age[v]-1]:
+                g.vp.state[v] = D       #dead
+                g.clear_vertex(v)  #clear all connections
+                
+            else: 
+                g.vp.state[v] = R
 
         elif g.vp.state[v] == S: #susceptible
             #economy_value += economy[age[v]-1]
@@ -263,7 +270,7 @@ def update_state(g,action):
                     i = 1
             
             if i:
-                g.vp.state[v] = I
+                g.vp.state[v] = Iv
                         
 
         #if g.vp.state[v] == R:
@@ -279,3 +286,75 @@ def update_state(g,action):
 
 
 
+#for the first timestep, we only want to spread the pandemic, no recovery or death for first infected individual
+def update_firststate(g,action):
+    
+    #newly_infected.a = False
+    
+    #g.vp.removed.a = False
+    for i in np.arange(0,action.size-1):
+        num = action[i]
+        action[i] = round(num)
+        action[i+1] += num-action[i]
+    
+    vacc_pop = np.zeros(20) #at the beginning of each update round, we have vaccinated 0 people per agegroup
+    
+    vs = list(g.vertices())
+
+    shuffle(vs)
+
+    for v in vs:
+        
+        if g.vp.state[v] == I:
+            ns = list(v.out_neighbors())
+
+        if g.vp.state[v] == S: #susceptible
+            #economy_value += economy[age[v]-1]
+            
+            if vacc_pop[g.vp.age[v]-1] < action[g.vp.age[v]-1]:
+                #the action tells us how many vaccines are available per age group. if we haven't distributed all yet, offer one
+                if random() < vacc_ac[g.vp.age[v]-1]: #individual can accept vaccine or not
+                    g.vp.state[v] = Sv
+                    vacc_pop[g.vp.age[v]-1] += 1 #increment count of distributed vaccines for this agegroup
+            
+            if g.vp.state[v] == S: #check that individual didn't get vaccinated in the mean time
+                ns = list(v.out_neighbors())
+                
+                i = 0
+
+                for w in ns: #iterate through all neighbors, each has infection probability
+
+                    if (g.vp.state[w] == I or g.vp.state[w] == Iv) and random()<inflist[g.vp.age[v]-1]:
+                    #infection rate dependent on age
+                        
+                        i = 1 
+                        
+                if i:#if infected by at least one neighbor, change status
+                    g.vp.state[v] = I
+    
+        elif g.vp.state[v] == Sv:
+            #economy_value += economy[age[v]-1]
+            ns = list(v.out_neighbors())
+
+            i = 0
+
+            for w in ns:
+                
+                if (g.vp.state[w] == I or g.vp.state[w] == Iv) and random()<vac_inflist[g.vp.age[v]-1]:
+                    
+                    i = 1
+            
+            if i:
+                g.vp.state[v] = Iv
+                        
+
+        #if g.vp.state[v] == R:
+            #economy_value += economy[age[v]-1]
+            #g.vp.removed[v] = True
+            
+       
+    #economy_list.append(economy_value)
+
+    # Filter out the recovered vertices
+
+    g.set_vertex_filter(g.vp.removed, inverted=True)
