@@ -44,9 +44,21 @@ def add_ages(g,distribution):
 
 # SET UP GRAPH
 def make_graph(size,distribution):
-    #size = 100
     
-    g = Graph(directed=False)
+    #graph creation
+    #first statement gives you a fully randomized graph while the second one gives you a REGULAR graph with all nodes having 5 degrees
+    if 1 ==0:
+        size = 100
+        g = Graph(directed=False)
+    
+        # insert random vertices (nodes)
+        g.add_vertex(size)
+    
+        # insert some random links
+        for s,t in zip(randint(0, size, 2*size), randint(0, size, 2*size)):
+            g.add_edge(g.vertex(s), g.vertex(t))
+    else:
+         g=graph_tool.generation.price_network(100, m=5, c=None, gamma=1, directed=False,seed_graph=None)
     
     #definition of vertex properties
     global S          # White color
@@ -74,12 +86,7 @@ def make_graph(size,distribution):
     g.vp.age = age
     g.vp.removed = removed
     g.vp.emax = emax
-    # insert random vertices (nodes)
-    g.add_vertex(size)
     
-    # insert some random links
-    for s,t in zip(randint(0, size, 2*size), randint(0, size, 2*size)):
-        g.add_edge(g.vertex(s), g.vertex(t))
     
     #makes all nodes suceptible
     for i in g.vertices():
@@ -151,7 +158,7 @@ def extract_economy(g):
             if g.vp.state[v]!= I and g.vp.state[v]!=Iv:
                 ecurr += economy[g.vp.age[v]-1]
     return ecurr/emax
-
+#SUS = 0 && 3, I = 1 && 4 (V), R = 2, D = 5
 def graph_to_matrix(g):
     matrix = np.zeros([g.num_vertices(),7])
     for v in g.vertices():
