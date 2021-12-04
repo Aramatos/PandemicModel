@@ -14,6 +14,9 @@ def add_ages(g,distribution):
     agedistribution = np.genfromtxt(path1+distribution+path2, delimiter=',')[:,1]
     #visit vertices in random order
     #print(agedistribution)
+    scale = g.num_vertices()/100
+    agedistribution = np.multiply(agedistribution,scale)
+    
     vs = list(g.vertices())
     shuffle(vs)
     #we will fill all age groups one by one
@@ -21,13 +24,12 @@ def add_ages(g,distribution):
     counter = 0 #counter for how many people have been placed in current group
     
     for v in vs:
-        if(a > 20):
+        if(a > 19):
             #safety measure
             return
         if counter < agedistribution[a-1]:
             #if current age group hasn't gotten enough people assigned, add another, move on to next vertex
             g.vp.age[v] = a
-            #agegrouplists[a-1].append(v)
             counter = counter + 1
         else:
             #current age group is full, move to next age group with at least one person
@@ -37,9 +39,8 @@ def add_ages(g,distribution):
                     a = a + 1
                 else:
                     #in case number for last age group is 0
-                    return
+                    return 0
             g.vp.age[v] = a
-            #agegrouplists[a-1].append(v)
             counter = 1
 
 # SET UP GRAPH
@@ -282,6 +283,9 @@ def update_state(g,action):
     # Filter out the recovered vertices
 
     g.set_vertex_filter(g.vp.removed, inverted=True)
+    
+    #return how many new people we vaccinated
+    return vacc_pop
 
 
 
@@ -357,3 +361,13 @@ def update_firststate(g,action):
     # Filter out the recovered vertices
 
     g.set_vertex_filter(g.vp.removed, inverted=True)
+    #return how many new people we vaccinated
+    return vacc_pop
+
+def get_ages(g):
+    ages = np.zeros(20)
+    
+    vs = list(g.vertices())
+    for v in vs:
+        ages[g.vp.age[v]-1] += 1
+    return ages
