@@ -5,7 +5,7 @@ from numpy.random import randint
 from numpy.random import random
 from numpy.random import *
 import numpy as np
-
+import math as math
 
 def add_ages(g,distribution):
     path1 = 'Age_Dists/'
@@ -183,6 +183,12 @@ def update_state(g,action):
     #newly_infected.a = False
     
     #g.vp.removed.a = False
+    for i in np.arange(0,action.size-1):
+        num = action[i]
+        action[i] = round(num)
+        action[i+1] += num-action[i]
+    
+    vacc_pop = np.zeros(20) #at the beginning of each update round, we have vaccinated 0 people per agegroup
     
     vs = list(g.vertices())
 
@@ -215,11 +221,14 @@ def update_state(g,action):
 
         elif g.vp.state[v] == S: #susceptible
             #economy_value += economy[age[v]-1]
-            if random() < action[g.vp.age[v]-1]*vacc_ac[g.vp.age[v]-1]:
-                #action models vaccine availability
-                g.vp.state[v] = Sv #if vaccine is available and accepted by individual, vaccinate
             
-            else: 
+            if vacc_pop[g.vp.age[v]-1] < action[g.vp.age[v]-1]:
+                #the action tells us how many vaccines are available per age group. if we haven't distributed all yet, offer one
+                if random() < vacc_ac[g.vp.age[v]-1]: #individual can accept vaccine or not
+                    g.vp.state[v] = Sv
+                    vacc_pop[g.vp.age[v]-1] += 1 #increment count of distributed vaccines for this agegroup
+            
+            if g.vp.state[v] == S: #check that individual didn't get vaccinated in the mean time
                 ns = list(v.out_neighbors())
                 
                 i = 0
