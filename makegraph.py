@@ -158,7 +158,7 @@ def extract_economy(g):
             if g.vp.state[v]!= I and g.vp.state[v]!=Iv:
                 ecurr += economy[g.vp.age[v]-1]
     return ecurr/emax
-
+#SUS = 0 && 3, I = 1 && 4 (V), R = 2, D = 5
 def graph_to_matrix(g):
     matrix = np.zeros([g.num_vertices(),7])
     for v in g.vertices():
