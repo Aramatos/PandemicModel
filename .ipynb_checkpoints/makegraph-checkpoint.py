@@ -13,7 +13,10 @@ def add_ages(g,distribution):
     #generate array containing amount of people per age group
     agedistribution = np.genfromtxt(path1+distribution+path2, delimiter=',')[:,1]
     #visit vertices in random order
-    #print(agedistribution)
+    
+    scale = g.num_vertices()/100
+    agedistribution = np.multiply(agedistribution,scale)
+    
     vs = list(g.vertices())
     shuffle(vs)
     #we will fill all age groups one by one
@@ -21,13 +24,12 @@ def add_ages(g,distribution):
     counter = 0 #counter for how many people have been placed in current group
     
     for v in vs:
-        if(a > 20):
+        if(a > 19):
             #safety measure
             return
         if counter < agedistribution[a-1]:
             #if current age group hasn't gotten enough people assigned, add another, move on to next vertex
             g.vp.age[v] = a
-            #agegrouplists[a-1].append(v)
             counter = counter + 1
         else:
             #current age group is full, move to next age group with at least one person
@@ -37,9 +39,8 @@ def add_ages(g,distribution):
                     a = a + 1
                 else:
                     #in case number for last age group is 0
-                    return
+                    return 0
             g.vp.age[v] = a
-            #agegrouplists[a-1].append(v)
             counter = 1
 
 # SET UP GRAPH
@@ -47,8 +48,7 @@ def make_graph(size,distribution):
     
     #graph creation
     #first statement gives you a fully randomized graph while the second one gives you a REGULAR graph with all nodes having 5 degrees
-    if 1 ==0:
-        size = 100
+    if 0 ==1:
         g = Graph(directed=False)
     
         # insert random vertices (nodes)
@@ -58,7 +58,7 @@ def make_graph(size,distribution):
         for s,t in zip(randint(0, size, 2*size), randint(0, size, 2*size)):
             g.add_edge(g.vertex(s), g.vertex(t))
     else:
-         g=graph_tool.generation.price_network(size, m=5, c=None, gamma=1, directed=False,seed_graph=None)
+         g=graph_tool.generation.price_network(size, m=3, c=None, gamma=1, directed=False,seed_graph=None)
     
     #definition of vertex properties
     global S          # White color
@@ -113,11 +113,6 @@ Iv = [0.2,0.2,0.5,1]      # INFECTED + VACCINATED     (dark blue)
 
 D = [0.8, 0, 0, 0.6]      # DEAD                      (red)
 
-'''agegroups=20
-agegrouplists = [[] for i in range(1, agegroups+1)]
-tlist = list()
-TIMEUNIT = 20
-tags = list()'''
 
 
 #probabilities
@@ -141,7 +136,7 @@ vac_inflist = inflist*0.2
 
 #recovery is now only dependent on death
 
-#economy contribution
+#economy contribution per age group
 
 economy = [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0]
 
@@ -204,11 +199,7 @@ def update_state(g,action):
     for v in vs:
 
         if g.vp.state[v] == I: #infected
-            '''
-            if random() < reclist[g.vp.age[v]-1] : #r: recovery rate
-                g.vp.state[v] = R
-                g.clear_vertex(v) #clear all connections
-            '''    
+
             if random() < drlist[g.vp.age[v]-1]:
                 g.vp.state[v] = D       #dead
                 g.clear_vertex(v)  #clear all connections
@@ -217,15 +208,7 @@ def update_state(g,action):
                 g.vp.state[v] = R
                 
         if g.vp.state[v] == Iv: #infected and vaccinated
-            '''
-            if random() < vac_reclist[g.vp.age[v]-1]:
-                g.vp.state[v] = R
-                g.clear_vertex(v)  #clear all connections
-                
-            elif random() < vac_drlist[g.vp.age[v]-1]:
-                g.vp.state[v] = D       #vac dead
-                g.clear_vertex(v)  #clear all connections
-            '''
+
             if random() < vac_drlist[g.vp.age[v]-1]:
                 g.vp.state[v] = D       #dead
                 g.clear_vertex(v)  #clear all connections
@@ -273,16 +256,11 @@ def update_state(g,action):
                 g.vp.state[v] = Iv
                         
 
-        #if g.vp.state[v] == R:
-            #economy_value += economy[age[v]-1]
-            #g.vp.removed[v] = True
-            
-       
-    #economy_list.append(economy_value)
-
-    # Filter out the recovered vertices
 
     g.set_vertex_filter(g.vp.removed, inverted=True)
+    
+    #return how many new people we vaccinated
+    return vacc_pop
 
 
 
@@ -348,13 +326,18 @@ def update_firststate(g,action):
                 g.vp.state[v] = Iv
                         
 
-        #if g.vp.state[v] == R:
-            #economy_value += economy[age[v]-1]
-            #g.vp.removed[v] = True
-            
-       
-    #economy_list.append(economy_value)
+
 
     # Filter out the recovered vertices
 
     g.set_vertex_filter(g.vp.removed, inverted=True)
+    #return how many new people we vaccinated
+    return vacc_pop
+
+def get_ages(g):
+    ages = np.zeros(20)
+    
+    vs = list(g.vertices())
+    for v in vs:
+        ages[g.vp.age[v]-1] += 1
+    return ages

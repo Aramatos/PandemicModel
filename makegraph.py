@@ -13,7 +13,7 @@ def add_ages(g,distribution):
     #generate array containing amount of people per age group
     agedistribution = np.genfromtxt(path1+distribution+path2, delimiter=',')[:,1]
     #visit vertices in random order
-    #print(agedistribution)
+    
     scale = g.num_vertices()/100
     agedistribution = np.multiply(agedistribution,scale)
     
@@ -113,11 +113,6 @@ Iv = [0.2,0.2,0.5,1]      # INFECTED + VACCINATED     (dark blue)
 
 D = [0.8, 0, 0, 0.6]      # DEAD                      (red)
 
-'''agegroups=20
-agegrouplists = [[] for i in range(1, agegroups+1)]
-tlist = list()
-TIMEUNIT = 20
-tags = list()'''
 
 
 #probabilities
@@ -141,7 +136,7 @@ vac_inflist = inflist*0.2
 
 #recovery is now only dependent on death
 
-#economy contribution
+#economy contribution per age group
 
 economy = [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0]
 
@@ -204,11 +199,7 @@ def update_state(g,action):
     for v in vs:
 
         if g.vp.state[v] == I: #infected
-            '''
-            if random() < reclist[g.vp.age[v]-1] : #r: recovery rate
-                g.vp.state[v] = R
-                g.clear_vertex(v) #clear all connections
-            '''    
+
             if random() < drlist[g.vp.age[v]-1]:
                 g.vp.state[v] = D       #dead
                 g.clear_vertex(v)  #clear all connections
@@ -217,15 +208,7 @@ def update_state(g,action):
                 g.vp.state[v] = R
                 
         if g.vp.state[v] == Iv: #infected and vaccinated
-            '''
-            if random() < vac_reclist[g.vp.age[v]-1]:
-                g.vp.state[v] = R
-                g.clear_vertex(v)  #clear all connections
-                
-            elif random() < vac_drlist[g.vp.age[v]-1]:
-                g.vp.state[v] = D       #vac dead
-                g.clear_vertex(v)  #clear all connections
-            '''
+
             if random() < vac_drlist[g.vp.age[v]-1]:
                 g.vp.state[v] = D       #dead
                 g.clear_vertex(v)  #clear all connections
@@ -273,14 +256,6 @@ def update_state(g,action):
                 g.vp.state[v] = Iv
                         
 
-        #if g.vp.state[v] == R:
-            #economy_value += economy[age[v]-1]
-            #g.vp.removed[v] = True
-            
-       
-    #economy_list.append(economy_value)
-
-    # Filter out the recovered vertices
 
     g.set_vertex_filter(g.vp.removed, inverted=True)
     
@@ -351,12 +326,7 @@ def update_firststate(g,action):
                 g.vp.state[v] = Iv
                         
 
-        #if g.vp.state[v] == R:
-            #economy_value += economy[age[v]-1]
-            #g.vp.removed[v] = True
-            
-       
-    #economy_list.append(economy_value)
+
 
     # Filter out the recovered vertices
 
