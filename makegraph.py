@@ -1,4 +1,3 @@
-#This file creates a graph (same as Trial does)
 #helper file
 from graph_tool.all import *
 from numpy.random import randint
@@ -7,6 +6,8 @@ from numpy.random import *
 import numpy as np
 import math as math
 
+
+#gives age distribution to the graph
 def add_ages(g,distribution):
     path1 = 'Age_Dists/'
     path2 = 'Dist.csv'
@@ -141,7 +142,6 @@ vac_inflist = inflist*0.2
 economy = [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0]
 
 
-#g = make_graph()
 def extract_economy(g):
     #emax is maximal economy value calculated over all people (even dead)
     emax = 0
@@ -153,7 +153,9 @@ def extract_economy(g):
             if g.vp.state[v]!= I and g.vp.state[v]!=Iv:
                 ecurr += economy[g.vp.age[v]-1]
     return ecurr
+
 #SUS = 0 && 3, I = 1 && 4 (V), R = 2, D = 5
+
 def graph_to_matrix(g):
     matrix = np.zeros([g.num_vertices(),7])
     for v in g.vertices():
@@ -177,14 +179,9 @@ def graph_to_matrix(g):
             matrix[int(v),6] = 0
     return matrix
 
-def graph_get():
-    return g
 
 def update_state(g,action):
     
-    #newly_infected.a = False
-    
-    #g.vp.removed.a = False
     for i in np.arange(0,action.size-1):
         num = action[i]
         action[i] = round(num)
@@ -217,7 +214,6 @@ def update_state(g,action):
                 g.vp.state[v] = R
 
         elif g.vp.state[v] == S: #susceptible
-            #economy_value += economy[age[v]-1]
             
             if vacc_pop[g.vp.age[v]-1] < action[g.vp.age[v]-1]:
                 #the action tells us how many vaccines are available per age group. if we haven't distributed all yet, offer one
@@ -241,7 +237,7 @@ def update_state(g,action):
                     g.vp.state[v] = I
     
         elif g.vp.state[v] == Sv:
-            #economy_value += economy[age[v]-1]
+            
             ns = list(v.out_neighbors())
 
             i = 0
@@ -267,9 +263,6 @@ def update_state(g,action):
 #for the first timestep, we only want to spread the pandemic, no recovery or death for first infected individual
 def update_firststate(g,action):
     
-    #newly_infected.a = False
-    
-    #g.vp.removed.a = False
     for i in np.arange(0,action.size-1):
         num = action[i]
         action[i] = round(num)
@@ -287,7 +280,6 @@ def update_firststate(g,action):
             ns = list(v.out_neighbors())
 
         if g.vp.state[v] == S: #susceptible
-            #economy_value += economy[age[v]-1]
             
             if vacc_pop[g.vp.age[v]-1] < action[g.vp.age[v]-1]:
                 #the action tells us how many vaccines are available per age group. if we haven't distributed all yet, offer one
@@ -311,7 +303,7 @@ def update_firststate(g,action):
                     g.vp.state[v] = I
     
         elif g.vp.state[v] == Sv:
-            #economy_value += economy[age[v]-1]
+            
             ns = list(v.out_neighbors())
 
             i = 0
@@ -324,9 +316,6 @@ def update_firststate(g,action):
             
             if i:
                 g.vp.state[v] = Iv
-                        
-
-
 
     # Filter out the recovered vertices
 
@@ -334,6 +323,7 @@ def update_firststate(g,action):
     #return how many new people we vaccinated
     return vacc_pop
 
+#checks age distribution of graph
 def get_ages(g):
     ages = np.zeros(20)
     
